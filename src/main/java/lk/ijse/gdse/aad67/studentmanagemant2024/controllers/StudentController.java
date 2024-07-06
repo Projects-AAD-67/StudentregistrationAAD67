@@ -1,6 +1,7 @@
 package lk.ijse.gdse.aad67.studentmanagemant2024.controllers;
 
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import jakarta.servlet.ServletException;
@@ -33,8 +34,18 @@ public class StudentController extends HttpServlet {
 
         //JSON manipulate with Parson
         JsonReader reader = Json.createReader(req.getReader());
-        JsonObject jsonObject = reader.readObject();
-        System.out.println(jsonObject.getString("email"));
+        JsonArray jArray = reader.readArray();
+        for (int i = 0; i < jArray.size(); i++) {
+            JsonObject jsonObject = jArray.getJsonObject(i);
+            System.out.println(jsonObject.getString("name"));
+        }
+
+
+
+//        JsonObject jsonObject = reader.readObject();
+
+//        System.out.println(jsonObject.getString("email"));
+
 
 
     }
@@ -51,6 +62,6 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-       //Tdod: Delete Student
+       //Todo: Delete Student
     }
 }
