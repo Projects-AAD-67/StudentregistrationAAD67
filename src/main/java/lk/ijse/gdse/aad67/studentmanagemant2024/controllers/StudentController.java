@@ -16,6 +16,8 @@ import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @WebServlet(urlPatterns = "/student")
@@ -27,11 +29,15 @@ public class StudentController extends HttpServlet {
             //send error
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         }
-         String id  = UUID.randomUUID().toString();
-        Jsonb jsonb = JsonbBuilder.create();
-        StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
-        studentDTO.setId(id);
-        System.out.println(studentDTO);
+         //String id  = UUID.randomUUID().toString();
+         Jsonb jsonb = JsonbBuilder.create();
+        List<StudentDTO> studentDTOList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDTO>() {
+        }.getClass().getGenericSuperclass());
+        studentDTOList.forEach(System.out::println);
+
+//        StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+//        studentDTO.setId(id);
+//        System.out.println(studentDTO);
 
     }
 
