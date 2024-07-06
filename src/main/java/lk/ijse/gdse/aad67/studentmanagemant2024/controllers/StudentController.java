@@ -16,12 +16,32 @@ import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @WebServlet(urlPatterns = "/student")
 public class StudentController extends HttpServlet {
+    Connection connection;
+    static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
+    @Override
+    public void init() throws ServletException {
+        try {
+            var driverCalss = getServletContext().getInitParameter("driver-class");
+            var dbUrl = getServletContext().getInitParameter("dbURL");
+            var userName = getServletContext().getInitParameter("dbUserName");
+            var password = getServletContext().getInitParameter("dbPassword");
+            Class.forName(driverCalss);
+           this.connection =  DriverManager.getConnection(dbUrl,userName,password);
+        }catch (ClassNotFoundException | SQLException e){
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
       //Todo: Save student
@@ -29,16 +49,28 @@ public class StudentController extends HttpServlet {
             //send error
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         }
-         //String id  = UUID.randomUUID().toString();
+         String id  = UUID.randomUUID().toString();
          Jsonb jsonb = JsonbBuilder.create();
-        List<StudentDTO> studentDTOList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDTO>() {
-        }.getClass().getGenericSuperclass());
-        studentDTOList.forEach(System.out::println);
+         StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+         studentDTO.setId(id);
+         System.out.println(studentDTO);
+         // Persist Data
+        try {
+            var ps = connection.prepareStatement(SAVE_STUDENT);
+            ps.setString(1, studentDTO.getId());
+            ps.setString(2, studentDTO.getName());
+            ps.setString(3, studentDTO.getCity());
+            ps.setString(4, studentDTO.getEmail());
+            ps.setString(5, studentDTO.getLevel());
+            if(ps.executeUpdate() != 0){
+                resp.getWriter().write("Student Saved");
+            }else {
+                resp.getWriter().write("Student Not Saved");
+            }
 
-//        StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
-//        studentDTO.setId(id);
-//        System.out.println(studentDTO);
-
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
