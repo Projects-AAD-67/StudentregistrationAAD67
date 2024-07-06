@@ -4,15 +4,19 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.UUID;
 
 @WebServlet(urlPatterns = "/student")
 public class StudentController extends HttpServlet {
@@ -23,30 +27,11 @@ public class StudentController extends HttpServlet {
             //send error
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         }
-        //process
-//        BufferedReader reader = req.getReader();
-//        StringBuilder sb = new StringBuilder();
-//        var writer = resp.getWriter();
-//        reader.lines().forEach(line-> sb.append(line+"\n"));
-//        System.out.println(sb);
-//        writer.write(sb.toString());
-//        writer.close();
-
-        //JSON manipulate with Parson
-        JsonReader reader = Json.createReader(req.getReader());
-        JsonArray jArray = reader.readArray();
-        for (int i = 0; i < jArray.size(); i++) {
-            JsonObject jsonObject = jArray.getJsonObject(i);
-            System.out.println(jsonObject.getString("name"));
-        }
-
-
-
-//        JsonObject jsonObject = reader.readObject();
-
-//        System.out.println(jsonObject.getString("email"));
-
-
+         String id  = UUID.randomUUID().toString();
+        Jsonb jsonb = JsonbBuilder.create();
+        StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+        studentDTO.setId(id);
+        System.out.println(studentDTO);
 
     }
 
