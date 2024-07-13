@@ -1,35 +1,26 @@
 package lk.ijse.gdse.aad67.studentmanagemant2024.controllers;
 
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
+import lk.ijse.gdse.aad67.studentmanagemant2024.dao.impl.StudentStudentDataProcess;
 import lk.ijse.gdse.aad67.studentmanagemant2024.util.UtilProcess;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
-@WebServlet(urlPatterns = "/student",
-        initParams = {
-          @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
-          @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/aad67JavaEE?createDatabaseIfNotExist=true"),
-          @WebInitParam(name = "dbUserName",value = "root"),
-          @WebInitParam(name = "dbPassword",value = "mysql"),
-        }
+@WebServlet(urlPatterns = "/student"
+//        initParams = {
+//          @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
+//          @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/aad67JavaEE?createDatabaseIfNotExist=true"),
+//          @WebInitParam(name = "dbUserName",value = "root"),
+//          @WebInitParam(name = "dbPassword",value = "mysql"),
+//        }
 )
 public class StudentController extends HttpServlet {
     Connection connection;
@@ -40,15 +31,15 @@ public class StudentController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-//            var driverCalss = getServletContext().getInitParameter("driver-class");
-//            var dbUrl = getServletContext().getInitParameter("dbURL");
-//            var userName = getServletContext().getInitParameter("dbUserName");
-//            var password = getServletContext().getInitParameter("dbPassword");
+            var driverCalss = getServletContext().getInitParameter("driver-class");
+            var dbUrl = getServletContext().getInitParameter("dbURL");
+            var userName = getServletContext().getInitParameter("dbUserName");
+            var password = getServletContext().getInitParameter("dbPassword");
             // Get configs from servlet
-            var driverCalss = getServletConfig().getInitParameter("driver-class");
-            var dbUrl = getServletConfig().getInitParameter("dbURL");
-            var userName = getServletConfig().getInitParameter("dbUserName");
-            var password = getServletConfig().getInitParameter("dbPassword");
+//            var driverCalss = getServletConfig().getInitParameter("driver-class");
+//            var dbUrl = getServletConfig().getInitParameter("dbURL");
+//            var userName = getServletConfig().getInitParameter("dbUserName");
+//            var password = getServletConfig().getInitParameter("dbPassword");
             Class.forName(driverCalss);
            this.connection =  DriverManager.getConnection(dbUrl,userName,password);
         }catch (ClassNotFoundException | SQLException e){
@@ -116,27 +107,16 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        var studentDTO = new StudentDTO();
         var studentId = req.getParameter("id");
-
+        var dataProcess = new StudentStudentDataProcess();
         try (var writer = resp.getWriter()){
-            var ps = connection.prepareStatement(GET_STUDENT);
-            ps.setString(1, studentId);
-            var resultSet = ps.executeQuery();
-            while (resultSet.next()){
-                studentDTO.setId(resultSet.getString("id"));
-                studentDTO.setName(resultSet.getString("name"));
-                studentDTO.setCity(resultSet.getString("city"));
-                studentDTO.setEmail(resultSet.getString("email"));
-                studentDTO.setLevel(resultSet.getString("level"));
-            }
-            System.out.println(studentDTO);
+            var student = dataProcess.getStudent(studentId, connection);
+            System.out.println(student);
             resp.setContentType("application/json");
             var jsonb = JsonbBuilder.create();
-            jsonb.toJson(studentDTO,writer);
-
+            jsonb.toJson(student,writer);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
