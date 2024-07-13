@@ -7,6 +7,7 @@ import jakarta.json.JsonReader;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@WebServlet(urlPatterns = "/student")
+@WebServlet(urlPatterns = "/student",
+        initParams = {
+          @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
+          @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/aad67JavaEE?createDatabaseIfNotExist=true"),
+          @WebInitParam(name = "dbUserName",value = "root"),
+          @WebInitParam(name = "dbPassword",value = "mysql"),
+        }
+)
 public class StudentController extends HttpServlet {
     Connection connection;
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
@@ -32,10 +40,15 @@ public class StudentController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            var driverCalss = getServletContext().getInitParameter("driver-class");
-            var dbUrl = getServletContext().getInitParameter("dbURL");
-            var userName = getServletContext().getInitParameter("dbUserName");
-            var password = getServletContext().getInitParameter("dbPassword");
+//            var driverCalss = getServletContext().getInitParameter("driver-class");
+//            var dbUrl = getServletContext().getInitParameter("dbURL");
+//            var userName = getServletContext().getInitParameter("dbUserName");
+//            var password = getServletContext().getInitParameter("dbPassword");
+            // Get configs from servlet
+            var driverCalss = getServletConfig().getInitParameter("driver-class");
+            var dbUrl = getServletConfig().getInitParameter("dbURL");
+            var userName = getServletConfig().getInitParameter("dbUserName");
+            var password = getServletConfig().getInitParameter("dbPassword");
             Class.forName(driverCalss);
            this.connection =  DriverManager.getConnection(dbUrl,userName,password);
         }catch (ClassNotFoundException | SQLException e){
