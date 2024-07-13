@@ -12,14 +12,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
+import lk.ijse.gdse.aad67.studentmanagemant2024.util.UtilProcess;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +26,8 @@ import java.util.UUID;
 public class StudentController extends HttpServlet {
     Connection connection;
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
+    static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
+    static String UPDATE_STUDENT = "UPDATE student SET name=?,city=?,email=?,level=? WHERE id=?";
     @Override
     public void init() throws ServletException {
         try {
@@ -47,12 +47,11 @@ public class StudentController extends HttpServlet {
       //Todo: Save student
         if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
             //send error
-            resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
-         String id  = UUID.randomUUID().toString();
          Jsonb jsonb = JsonbBuilder.create();
          StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
-         studentDTO.setId(id);
+         studentDTO.setId(UtilProcess.generateId());
          System.out.println(studentDTO);
          // Persist Data
         try {
@@ -64,6 +63,7 @@ public class StudentController extends HttpServlet {
             ps.setString(5, studentDTO.getLevel());
             if(ps.executeUpdate() != 0){
                 resp.getWriter().write("Student Saved");
+                resp.setStatus(HttpServletResponse.SC_CREATED);
             }else {
                 resp.getWriter().write("Student Not Saved");
             }
@@ -75,12 +75,57 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        //Todo:Update student
+        if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        }
+        try {
+            var ps = this.connection.prepareStatement(UPDATE_STUDENT);
+            var studentID = req.getParameter("stu-id");
+            Jsonb jsonb = JsonbBuilder.create();
+            var updatedStudent = jsonb.fromJson(req.getReader(), StudentDTO.class);
+            ps.setString(1, updatedStudent.getName());
+            ps.setString(2, updatedStudent.getCity());
+            ps.setString(3, updatedStudent.getEmail());
+            ps.setString(4, updatedStudent.getLevel());
+            ps.setString(5, studentID);
+            if(ps.executeUpdate() != 0){
+                resp.getWriter().write("Student Updated");
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            }else {
+                resp.getWriter().write("Update Failed");
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        //Todo: Get student details
+        var studentDTO = new StudentDTO();
+        var studentId = req.getParameter("id");
+
+        try (var writer = resp.getWriter()){
+            var ps = connection.prepareStatement(GET_STUDENT);
+            ps.setString(1, studentId);
+            var resultSet = ps.executeQuery();
+            while (resultSet.next()){
+                studentDTO.setId(resultSet.getString("id"));
+                studentDTO.setName(resultSet.getString("name"));
+                studentDTO.setCity(resultSet.getString("city"));
+                studentDTO.setEmail(resultSet.getString("email"));
+                studentDTO.setLevel(resultSet.getString("level"));
+            }
+            System.out.println(studentDTO);
+            resp.setContentType("application/json");
+            var jsonb = JsonbBuilder.create();
+            jsonb.toJson(studentDTO,resp.getWriter());
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
