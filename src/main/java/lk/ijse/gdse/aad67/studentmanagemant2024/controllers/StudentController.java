@@ -28,6 +28,7 @@ public class StudentController extends HttpServlet {
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
     static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
     static String UPDATE_STUDENT = "UPDATE student SET name=?,city=?,email=?,level=? WHERE id=?";
+    static String DELETE_STUDENT = "DELETE FROM student WHERE id=?";
     @Override
     public void init() throws ServletException {
         try {
@@ -54,7 +55,7 @@ public class StudentController extends HttpServlet {
          studentDTO.setId(UtilProcess.generateId());
          System.out.println(studentDTO);
          // Persist Data
-        try {
+        try (var writer = resp.getWriter()){
             var ps = connection.prepareStatement(SAVE_STUDENT);
             ps.setString(1, studentDTO.getId());
             ps.setString(2, studentDTO.getName());
@@ -62,10 +63,10 @@ public class StudentController extends HttpServlet {
             ps.setString(4, studentDTO.getEmail());
             ps.setString(5, studentDTO.getLevel());
             if(ps.executeUpdate() != 0){
-                resp.getWriter().write("Student Saved");
+                writer.write("Student Saved");
                 resp.setStatus(HttpServletResponse.SC_CREATED);
             }else {
-                resp.getWriter().write("Student Not Saved");
+                writer.write("Student Not Saved");
             }
 
         } catch (SQLException e) {
@@ -73,12 +74,13 @@ public class StudentController extends HttpServlet {
         }
     }
 
+
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
-        try {
+        try (var writer = resp.getWriter()){
             var ps = this.connection.prepareStatement(UPDATE_STUDENT);
             var studentID = req.getParameter("stu-id");
             Jsonb jsonb = JsonbBuilder.create();
@@ -89,16 +91,13 @@ public class StudentController extends HttpServlet {
             ps.setString(4, updatedStudent.getLevel());
             ps.setString(5, studentID);
             if(ps.executeUpdate() != 0){
-                resp.getWriter().write("Student Updated");
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }else {
-                resp.getWriter().write("Update Failed");
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                writer.write("Update Failed");
             }
-
-
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
         }
     }
 
@@ -121,15 +120,27 @@ public class StudentController extends HttpServlet {
             System.out.println(studentDTO);
             resp.setContentType("application/json");
             var jsonb = JsonbBuilder.create();
-            jsonb.toJson(studentDTO,resp.getWriter());
+            jsonb.toJson(studentDTO,writer);
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-       //Todo: Delete Student
+        var stuId = req.getParameter("stu-id");
+        try (var writer = resp.getWriter()){
+            var ps = this.connection.prepareStatement(DELETE_STUDENT);
+            ps.setString(1, stuId);
+            if(ps.executeUpdate() != 0){
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            }else {
+               writer.write("Delete Failed");
+            }
+        } catch (SQLException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
+        }
     }
 }
