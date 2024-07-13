@@ -82,21 +82,17 @@ public class StudentController extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
         try (var writer = resp.getWriter()){
-            var ps = this.connection.prepareStatement(UPDATE_STUDENT);
             var studentID = req.getParameter("stu-id");
             Jsonb jsonb = JsonbBuilder.create();
+            var studentDataProcess = new StudentDataProcess();
             var updatedStudent = jsonb.fromJson(req.getReader(), StudentDTO.class);
-            ps.setString(1, updatedStudent.getName());
-            ps.setString(2, updatedStudent.getCity());
-            ps.setString(3, updatedStudent.getEmail());
-            ps.setString(4, updatedStudent.getLevel());
-            ps.setString(5, studentID);
-            if(ps.executeUpdate() != 0){
+            if(studentDataProcess.updateStudent(studentID,updatedStudent,connection)){
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }else {
                 writer.write("Update Failed");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             }
-        } catch (SQLException e) {
+        } catch (JsonException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             e.printStackTrace();
         }

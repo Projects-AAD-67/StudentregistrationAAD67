@@ -1,8 +1,10 @@
 package lk.ijse.gdse.aad67.studentmanagemant2024.dao;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class StudentDataProcess implements StudentData {
@@ -51,7 +53,17 @@ public class StudentDataProcess implements StudentData {
     }
 
     @Override
-    public boolean updateStudent(String studentId, StudentDTO student, Connection connection) {
-        return false;
+    public boolean updateStudent(String studentId, StudentDTO updatedStudent, Connection connection) {
+        try {
+            var ps = connection.prepareStatement(UPDATE_STUDENT);
+            ps.setString(1, updatedStudent.getName());
+            ps.setString(2, updatedStudent.getCity());
+            ps.setString(3, updatedStudent.getEmail());
+            ps.setString(4, updatedStudent.getLevel());
+            ps.setString(5, studentId);
+            return ps.executeUpdate() != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
