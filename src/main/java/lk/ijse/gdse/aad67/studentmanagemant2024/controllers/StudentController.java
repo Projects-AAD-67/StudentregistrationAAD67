@@ -117,14 +117,14 @@ public class StudentController extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         var stuId = req.getParameter("stu-id");
         try (var writer = resp.getWriter()){
-            var ps = this.connection.prepareStatement(DELETE_STUDENT);
-            ps.setString(1, stuId);
-            if(ps.executeUpdate() != 0){
+            var studentDataProcess = new StudentDataProcess();
+            if(studentDataProcess.deleteStudent(stuId, connection)){
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }else {
-               writer.write("Delete Failed");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                writer.write("Delete Failed");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             throw new RuntimeException(e);
         }
