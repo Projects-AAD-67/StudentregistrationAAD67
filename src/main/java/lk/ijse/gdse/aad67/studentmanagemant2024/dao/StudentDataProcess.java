@@ -1,13 +1,11 @@
-package lk.ijse.gdse.aad67.studentmanagemant2024.dao.impl;
+package lk.ijse.gdse.aad67.studentmanagemant2024.dao;
 
-import jakarta.servlet.http.HttpServletResponse;
-import lk.ijse.gdse.aad67.studentmanagemant2024.dao.StudentData;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class StudentStudentDataProcess implements StudentData {
+public class StudentDataProcess implements StudentData {
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
     static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
     static String UPDATE_STUDENT = "UPDATE student SET name=?,city=?,email=?,level=? WHERE id=?";
@@ -32,7 +30,7 @@ public class StudentStudentDataProcess implements StudentData {
         return studentDTO;
     }
     @Override
-    public String saveStudent(StudentDTO studentDTO, Connection connection) {
+    public boolean saveStudent(StudentDTO studentDTO, Connection connection) {
         try {
             var ps = connection.prepareStatement(SAVE_STUDENT);
             ps.setString(1, studentDTO.getId());
@@ -40,11 +38,8 @@ public class StudentStudentDataProcess implements StudentData {
             ps.setString(3, studentDTO.getCity());
             ps.setString(4, studentDTO.getEmail());
             ps.setString(5, studentDTO.getLevel());
-            if (ps.executeUpdate() != 0) {
-                return "Save student successfully";
-            } else {
-                return "Save student failed";
-            }
+            return ps.executeUpdate() != 0;
+
         } catch (SQLException e) {
             throw new RuntimeException();
         }

@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
-import lk.ijse.gdse.aad67.studentmanagemant2024.dao.impl.StudentStudentDataProcess;
+import lk.ijse.gdse.aad67.studentmanagemant2024.dao.StudentDataProcess;
 import lk.ijse.gdse.aad67.studentmanagemant2024.util.UtilProcess;
 
 import java.io.IOException;
@@ -59,9 +59,18 @@ public class StudentController extends HttpServlet {
             Jsonb jsonb = JsonbBuilder.create();
             StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
             studentDTO.setId(UtilProcess.generateId());
-            var saveData = new StudentStudentDataProcess();
-            writer.write(saveData.saveStudent(studentDTO, connection));
+            var saveData = new StudentDataProcess();
+           if (saveData.saveStudent(studentDTO, connection)){
+               writer.write("Student saved successfully");
+               resp.setStatus(HttpServletResponse.SC_CREATED);
+           }else {
+               writer.write("Save student failed");
+               resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+               
+           }
+
         } catch (JsonException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             throw new RuntimeException(e);
         }
     }
@@ -96,7 +105,7 @@ public class StudentController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         var studentId = req.getParameter("id");
-        var dataProcess = new StudentStudentDataProcess();
+        var dataProcess = new StudentDataProcess();
         try (var writer = resp.getWriter()){
             var student = dataProcess.getStudent(studentId, connection);
             System.out.println(student);
