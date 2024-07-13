@@ -1,5 +1,6 @@
 package lk.ijse.gdse.aad67.studentmanagemant2024.controllers;
 
+import jakarta.json.JsonException;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
@@ -49,31 +50,18 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-      //Todo: Save student
         if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
             //send error
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
-         Jsonb jsonb = JsonbBuilder.create();
-         StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
-         studentDTO.setId(UtilProcess.generateId());
-         System.out.println(studentDTO);
-         // Persist Data
+        // Persist Data
         try (var writer = resp.getWriter()){
-            var ps = connection.prepareStatement(SAVE_STUDENT);
-            ps.setString(1, studentDTO.getId());
-            ps.setString(2, studentDTO.getName());
-            ps.setString(3, studentDTO.getCity());
-            ps.setString(4, studentDTO.getEmail());
-            ps.setString(5, studentDTO.getLevel());
-            if(ps.executeUpdate() != 0){
-                writer.write("Student Saved");
-                resp.setStatus(HttpServletResponse.SC_CREATED);
-            }else {
-                writer.write("Student Not Saved");
-            }
-
-        } catch (SQLException e) {
+            Jsonb jsonb = JsonbBuilder.create();
+            StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+            studentDTO.setId(UtilProcess.generateId());
+            var saveData = new StudentStudentDataProcess();
+            writer.write(saveData.saveStudent(studentDTO, connection));
+        } catch (JsonException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,5 +1,6 @@
 package lk.ijse.gdse.aad67.studentmanagemant2024.dao.impl;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dao.StudentData;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 
@@ -30,10 +31,23 @@ public class StudentStudentDataProcess implements StudentData {
         }
         return studentDTO;
     }
-
     @Override
     public String saveStudent(StudentDTO studentDTO, Connection connection) {
-        return "";
+        try {
+            var ps = connection.prepareStatement(SAVE_STUDENT);
+            ps.setString(1, studentDTO.getId());
+            ps.setString(2, studentDTO.getName());
+            ps.setString(3, studentDTO.getCity());
+            ps.setString(4, studentDTO.getEmail());
+            ps.setString(5, studentDTO.getLevel());
+            if (ps.executeUpdate() != 0) {
+                return "Save student successfully";
+            } else {
+                return "Save student failed";
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
     }
 
     @Override
