@@ -106,7 +106,7 @@ public class StudentController extends HttpServlet {
             var student = dataProcess.getStudent(studentId, connection);
             System.out.println(student);
             resp.setContentType("application/json");
-            var jsonb = JsonbBuilder.create();
+            Jsonb jsonb = JsonbBuilder.create();
             jsonb.toJson(student,writer);
         } catch (SQLException e) {
             throw new RuntimeException(e);
