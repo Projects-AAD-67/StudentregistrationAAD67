@@ -12,6 +12,9 @@ import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dao.StudentDataProcess;
 import lk.ijse.gdse.aad67.studentmanagemant2024.util.UtilProcess;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 
@@ -32,18 +35,10 @@ public class StudentController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            var driverCalss = getServletContext().getInitParameter("driver-class");
-            var dbUrl = getServletContext().getInitParameter("dbURL");
-            var userName = getServletContext().getInitParameter("dbUserName");
-            var password = getServletContext().getInitParameter("dbPassword");
-            // Get configs from servlet
-//            var driverCalss = getServletConfig().getInitParameter("driver-class");
-//            var dbUrl = getServletConfig().getInitParameter("dbURL");
-//            var userName = getServletConfig().getInitParameter("dbUserName");
-//            var password = getServletConfig().getInitParameter("dbPassword");
-            Class.forName(driverCalss);
-           this.connection =  DriverManager.getConnection(dbUrl,userName,password);
-        }catch (ClassNotFoundException | SQLException e){
+            var ctx = new InitialContext();
+            DataSource pool = (DataSource) ctx.lookup("java:comp/env/jdbc/stuRegistration");
+            this.connection =  pool.getConnection();
+        }catch (NamingException | SQLException e){
             e.printStackTrace();
         }
     }
