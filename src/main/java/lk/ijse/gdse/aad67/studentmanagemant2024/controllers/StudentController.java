@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dto.StudentDTO;
 import lk.ijse.gdse.aad67.studentmanagemant2024.dao.StudentDataProcess;
 import lk.ijse.gdse.aad67.studentmanagemant2024.util.UtilProcess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -25,8 +27,9 @@ import java.sql.*;
 //          @WebInitParam(name = "dbUserName",value = "root"),
 //          @WebInitParam(name = "dbPassword",value = "mysql"),
 //        }
-)
+,loadOnStartup = 2)
 public class StudentController extends HttpServlet {
+    static Logger logger =  LoggerFactory.getLogger(StudentController.class);
     Connection connection;
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
     static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
@@ -34,6 +37,7 @@ public class StudentController extends HttpServlet {
     static String DELETE_STUDENT = "DELETE FROM student WHERE id=?";
     @Override
     public void init() throws ServletException {
+        logger.info("Initializing StudentController with call init method");
         try {
             var ctx = new InitialContext();
             DataSource pool = (DataSource) ctx.lookup("java:comp/env/jdbc/stuRegistration");
